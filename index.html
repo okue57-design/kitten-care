@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>子猫のお世話</title>
+<meta name="theme-color" content="#F5F7FB">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="子猫のお世話">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Zen+Maru+Gothic:wght@500;700;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F7FB; --surface:#FFFFFF; --ink:#1F2A44; --sub:#6B7691; --line:#E3E8F1;
+  --done:#2FB58A; --done-bg:#E6F7F0;
+  --husband:#3E6FE0; --wife:#E8588F;
+  --s-early:#8A7CF0; --s-morning:#F5A524; --s-evening:#F07C4B; --s-night:#3B4B8C;
+  --paw-off:#D5DBE8;
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    --bg:#121829; --surface:#1B2338; --ink:#EEF1F8; --sub:#9AA5C0; --line:#2A3452;
+    --done-bg:#16322B; --paw-off:#33405F;
+  }
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:"Zen Maru Gothic","Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;
+  font-weight:500;line-height:1.5;
+  padding:env(safe-area-inset-top) 0 0;
+  overscroll-behavior-y:contain;
+}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+#app{max-width:520px;margin:0 auto;min-height:100%;padding:0 16px calc(96px + env(safe-area-inset-bottom))}
+
+/* header */
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 2px 8px}
+.date{font-size:1.15rem;font-weight:900}
+.who-badge{
+  display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;
+  background:var(--surface);border:1.5px solid var(--line);font-weight:700;font-size:.9rem
+}
+.who-badge i{width:10px;height:10px;border-radius:50%;background:var(--sub)}
+.who-badge[data-who="夫"] i{background:var(--husband)}
+.who-badge[data-who="妻"] i{background:var(--wife)}
+
+/* progress: five paws */
+.progress{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;padding:6px 2px 14px}
+.count{font-size:2.6rem;font-weight:900;line-height:1;letter-spacing:-.02em}
+.count small{font-size:1rem;font-weight:700;color:var(--sub);margin-left:4px;letter-spacing:0}
+.paws{display:flex;gap:6px}
+.paw{width:34px;height:34px;fill:var(--paw-off);transition:fill .25s, transform .25s}
+.paw.on{fill:var(--done);transform:scale(1.08) rotate(-8deg)}
+
+/* banner */
+.banner{
+  background:var(--done);color:#fff;border-radius:20px;padding:16px 18px;margin:0 0 14px;
+  font-weight:900;font-size:1.1rem;display:flex;gap:10px;align-items:center;
+  animation:pop .5s cubic-bezier(.2,1.4,.4,1);
+}
+.banner span{font-weight:500;font-size:.85rem;display:block;opacity:.92}
+@keyframes pop{from{transform:scale(.85);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* task list */
+.list{display:flex;flex-direction:column;gap:12px}
+.task{
+  --slot:var(--s-morning);
+  position:relative;width:100%;min-height:92px;text-align:left;
+  display:flex;align-items:center;gap:14px;padding:14px 16px 14px 20px;
+  background:var(--surface);border:2px solid var(--line);border-radius:22px;
+  transition:transform .08s, background .2s, border-color .2s;overflow:hidden;
+}
+.task::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--slot)}
+.task:active{transform:scale(.97)}
+.task .icon{font-size:2rem;width:44px;text-align:center;flex:none}
+.task .body{flex:1;min-width:0}
+.task .slot{font-size:.8rem;font-weight:700;color:var(--slot)}
+.task .label{font-size:1.3rem;font-weight:900;line-height:1.25}
+.task .status{flex:none;text-align:right;font-size:.85rem;color:var(--sub);font-weight:700}
+.task .check{
+  width:44px;height:44px;border-radius:50%;border:2.5px solid var(--line);
+  display:grid;place-items:center;font-size:1.4rem;color:transparent;flex:none
+}
+.task.done{background:var(--done-bg);border-color:var(--done)}
+.task.done .check{background:var(--done);border-color:var(--done);color:#fff;animation:pop .35s cubic-bezier(.2,1.4,.4,1)}
+.task.done .label{text-decoration:line-through;text-decoration-thickness:2px;text-decoration-color:rgba(47,181,138,.6)}
+.task.pending{opacity:.6;pointer-events:none}
+.by{display:inline-block;padding:1px 9px;border-radius:999px;color:#fff;font-weight:900;font-size:.8rem;margin-right:4px}
+.by[data-who="夫"]{background:var(--husband)} .by[data-who="妻"]{background:var(--wife)}
+.s-早朝{--slot:var(--s-early)} .s-朝{--slot:var(--s-morning)} .s-夕方{--slot:var(--s-evening)} .s-夜{--slot:var(--s-night)}
+
+/* history */
+.day{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:12px 14px;margin-bottom:12px}
+.day h3{margin:0 0 6px;display:flex;justify-content:space-between;font-size:1rem;font-weight:900}
+.day h3 span{color:var(--sub);font-size:.9rem}
+.day h3 span.full{color:var(--done)}
+.row{display:flex;align-items:center;gap:8px;padding:5px 0;font-size:.92rem;border-top:1px dashed var(--line)}
+.row .n{flex:1}
+.row .n em{font-style:normal;color:var(--sub);font-size:.78rem;margin-right:4px}
+.row .miss{color:var(--sub)}
+
+/* nav */
+nav{
+  position:fixed;left:0;right:0;bottom:0;display:flex;gap:8px;justify-content:center;
+  padding:10px 16px calc(10px + env(safe-area-inset-bottom));
+  background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(10px);border-top:1px solid var(--line)
+}
+nav button{flex:1;max-width:240px;padding:12px;border-radius:16px;font-weight:900;color:var(--sub);background:var(--surface);border:2px solid var(--line)}
+nav button.active{color:#fff;background:var(--ink);border-color:var(--ink)}
+@media (prefers-color-scheme: dark){nav button.active{color:var(--bg)}}
+
+/* overlays */
+.overlay{position:fixed;inset:0;background:rgba(18,24,41,.55);display:grid;place-items:center;padding:20px;z-index:20}
+.overlay[hidden]{display:none}
+.sheet{background:var(--surface);border-radius:26px;padding:24px 22px;width:100%;max-width:400px;text-align:center}
+.sheet h2{margin:0 0 6px;font-size:1.3rem;font-weight:900}
+.sheet p{margin:0 0 16px;color:var(--sub)}
+.sheet .big{font-size:2.6rem;margin-bottom:4px}
+.sheet input{
+  width:100%;padding:14px;border-radius:14px;border:2px solid var(--line);background:var(--bg);
+  color:var(--ink);font:inherit;font-size:1.1rem;text-align:center;margin-bottom:12px
+}
+.who-pick{display:flex;gap:10px;margin-bottom:14px}
+.who-pick button{flex:1;padding:16px;border-radius:16px;border:2.5px solid var(--line);font-weight:900;font-size:1.2rem}
+.who-pick button.sel[data-who="夫"]{border-color:var(--husband);background:var(--husband);color:#fff}
+.who-pick button.sel[data-who="妻"]{border-color:var(--wife);background:var(--wife);color:#fff}
+.btn{display:block;width:100%;padding:16px;border-radius:16px;background:var(--ink);color:var(--bg);font-weight:900;font-size:1.05rem}
+.btn.ghost{background:none;color:var(--sub);border:2px solid var(--line);margin-top:10px}
+.err{color:var(--wife);min-height:1.4em;margin:0 0 8px !important;font-size:.9rem}
+
+/* toast */
+#toast{
+  position:fixed;left:50%;bottom:calc(86px + env(safe-area-inset-bottom));transform:translate(-50%,20px);
+  background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;font-weight:700;font-size:.9rem;
+  opacity:0;pointer-events:none;transition:.25s;z-index:30;max-width:90%;text-align:center
+}
+#toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* confetti */
+.confetti{position:fixed;top:-40px;font-size:1.6rem;z-index:40;pointer-events:none;animation:fall linear forwards}
+@keyframes fall{to{transform:translateY(110vh) rotate(540deg);opacity:.9}}
+@media (prefers-reduced-motion: reduce){.confetti{display:none}.banner,.task.done .check{animation:none}}
+.empty{text-align:center;color:var(--sub);padding:30px 0}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="pawsym" viewBox="0 0 100 100">
+    <ellipse cx="20" cy="42" rx="11" ry="14" transform="rotate(-20 20 42)"/>
+    <ellipse cx="40" cy="22" rx="11" ry="15"/>
+    <ellipse cx="60" cy="22" rx="11" ry="15"/>
+    <ellipse cx="80" cy="42" rx="11" ry="14" transform="rotate(20 80 42)"/>
+    <path d="M50 46c-16 0-30 16-30 28 0 10 8 14 16 12 5-1 9-3 14-3s9 2 14 3c8 2 16-2 16-12 0-12-14-28-30-28z"/>
+  </symbol>
+</svg>
+
+<div id="app">
+  <header>
+    <div class="date" id="date">&nbsp;</div>
+    <button class="who-badge" id="whoBtn" aria-label="ユーザー切り替え"><i></i><span id="whoLabel">-</span></button>
+  </header>
+
+  <section id="view-today">
+    <div class="progress">
+      <div class="count"><span id="doneN">0</span>/<span id="totalN">5</span><small>完了</small></div>
+      <div class="paws" id="paws"></div>
+    </div>
+    <div class="banner" id="banner" hidden>
+      <div style="font-size:2rem">🎉</div>
+      <div>今日のお世話、ぜんぶ完了！<span>おつかれさま。子猫もごきげんです</span></div>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+
+  <section id="view-history" hidden></section>
+</div>
+
+<nav>
+  <button id="tabToday" class="active">今日</button>
+  <button id="tabHistory">履歴</button>
+</nav>
+
+<!-- ログイン -->
+<div class="overlay" id="login" hidden>
+  <div class="sheet">
+    <div class="big">🐱</div>
+    <h2>子猫のお世話</h2>
+    <p>合言葉と、あなたがどちらかを選んでください</p>
+    <input id="passInput" type="password" placeholder="合言葉" autocomplete="current-password">
+    <div class="who-pick" id="whoPick">
+      <button data-who="夫">夫</button>
+      <button data-who="妻">妻</button>
+    </div>
+    <p class="err" id="loginErr"></p>
+    <button class="btn" id="loginBtn">はじめる</button>
+  </div>
+</div>
+
+<!-- 完了済み/重複の警告 -->
+<div class="overlay" id="dialog" hidden>
+  <div class="sheet">
+    <div class="big">⚠️</div>
+    <h2 id="dlgTitle"></h2>
+    <p id="dlgMsg"></p>
+    <button class="btn" id="dlgOk">OK</button>
+    <button class="btn ghost" id="dlgUndo">押し間違いなので取り消す</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ===== 設定：デプロイ後にここを書き換える ===== */
+const API_URL = 'https://script.google.com/macros/s/ここにデプロイURL/exec';
+/* ============================================== */
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const LS = { pass: 'kc_pass', who: 'kc_who' };
+
+let pass = localStorage.getItem(LS.pass) || '';
+let who  = localStorage.getItem(LS.who)  || '';
+let state = null;
+let wasAllDone = null;
+let currentTab = 'today';
+const pending = new Set();
+let dlgTask = null;
+
+/* ---- URLパラメータでの簡易識別: ?pass=1234&who=妻 ---- */
+(function readUrlParams(){
+  const q = new URLSearchParams(location.search);
+  const w = q.get('who'), p = q.get('pass');
+  const map = { h:'夫', husband:'夫', w:'妻', wife:'妻', '夫':'夫', '妻':'妻' };
+  if (p) { pass = p; localStorage.setItem(LS.pass, p); }
+  if (w && map[w]) { who = map[w]; localStorage.setItem(LS.who, who); }
+  if (p || w) history.replaceState(null, '', location.pathname);
+})();
+
+/* ---- API ---- */
+async function api(params, body) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 20000);
+  try {
+    let r;
+    if (body) {
+      // text/plain にして CORS のプリフライトを避ける（GASの定番）
+      r = await fetch(API_URL, {
+        method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ ...body, pass }), signal: ctrl.signal
+      });
+    } else {
+      r = await fetch(API_URL + '?' + new URLSearchParams({ ...params, pass }), { signal: ctrl.signal });
+    }
+    return await r.json();
+  } finally { clearTimeout(t); }
+}
+
+/* ---- UI helpers ---- */
+function toast(msg) {
+  const el = $('toast'); el.textContent = msg; el.classList.add('show');
+  clearTimeout(toast._t); toast._t = setTimeout(() => el.classList.remove('show'), 2400);
+}
+function buzz(p) { try { navigator.vibrate && navigator.vibrate(p); } catch (e) {} }
+function fmtDate(s) {
+  const [y, m, d] = s.split('-').map(Number);
+  const w = '日月火水木金土'[new Date(y, m - 1, d).getDay()];
+  return { long: `${m}月${d}日（${w}）`, short: `${m}/${d}（${w}）` };
+}
+function byBadge(w) { return `<span class="by" data-who="${esc(w)}">${esc(w)}</span>`; }
+
+/* ---- 今日 ---- */
+function renderToday() {
+  if (!state) return;
+  const tasks = state.tasks;
+  const done = tasks.filter(t => t.done).length;
+  $('date').textContent = fmtDate(state.today).long;
+  $('doneN').textContent = done;
+  $('totalN').textContent = tasks.length;
+  $('paws').innerHTML = tasks.map((t, i) =>
+    `<svg class="paw ${i < done ? 'on' : ''}"><use href="#pawsym"/></svg>`).join('');
+
+  const allDone = done === tasks.length;
+  $('banner').hidden = !allDone;
+  if (allDone && wasAllDone === false) celebrate();
+  wasAllDone = allDone;
+
+  $('list').innerHTML = tasks.map(t => `
+    <button class="task s-${esc(t.slot)} ${t.done ? 'done' : ''} ${pending.has(t.id) ? 'pending' : ''}" data-id="${esc(t.id)}">
+      <div class="icon">${t.icon}</div>
+      <div class="body">
+        <div class="slot">${esc(t.slot)}</div>
+        <div class="label">${esc(t.label)}</div>
+      </div>
+      ${t.done
+        ? `<div class="status">${byBadge(t.who)}<br>${esc(t.time)}</div>`
+        : ''}
+      <div class="check">✓</div>
+    </button>`).join('');
+}
+
+function celebrate() {
+  buzz([60, 40, 60, 40, 120]);
+  const em = ['🐾', '🎉', '✨', '🐱', '🐟'];
+  for (let i = 0; i < 36; i++) {
+    const s = document.createElement('span');
+    s.className = 'confetti';
+    s.textContent = em[i % em.length];
+    s.style.left = Math.random() * 100 + 'vw';
+    s.style.animationDuration = (2 + Math.random() * 2) + 's';
+    s.style.animationDelay = (Math.random() * 0.6) + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 5000);
+  }
+}
+
+async function refresh(silent) {
+  if (pending.size) return;
+  try {
+    const res = await api({ action: 'state' });
+    if (res.error === 'auth') return showLogin('合言葉が違います');
+    if (!res.ok) throw new Error(res.error);
+    state = res; renderToday();
+  } catch (e) { if (!silent) toast('通信できません。電波を確認してください'); }
+}
+
+async function onTaskTap(id) {
+  const t = state.tasks.find(x => x.id === id);
+  if (!t || pending.has(id)) return;
+  if (t.done) return openDialog(t);          // 完了済み → 警告
+  buzz(30);
+  pending.add(id); renderToday();
+  try {
+    const res = await api(null, { action: 'complete', taskId: id, who });
+    if (res.error === 'auth') return showLogin('合言葉が違います');
+    if (res.tasks) state = res;
+    pending.delete(id); renderToday();
+    if (res.duplicate) { buzz([80, 60, 80]); openDialog(state.tasks.find(x => x.id === id), true); }
+    else if (!res.ok) toast('記録できませんでした');
+    else toast(`${t.slot}の${t.label}を記録しました`);
+  } catch (e) {
+    pending.delete(id); renderToday(); toast('通信できません。もう一度タップしてください');
+  }
+}
+
+/* ---- 警告ダイアログ ---- */
+function openDialog(t, justNow) {
+  dlgTask = t;
+  $('dlgTitle').textContent = 'すでに完了済みです';
+  const same = t.who === who;
+  $('dlgMsg').textContent = `${t.who}さんが ${t.time} に完了済みです` +
+    (justNow && !same ? '\n（ほぼ同時にタップされました）' : '');
+  $('dlgMsg').style.whiteSpace = 'pre-line';
+  $('dlgUndo').hidden = false;
+  $('dialog').hidden = false;
+}
+$('dlgOk').onclick = () => { $('dialog').hidden = true; };
+$('dlgUndo').onclick = async () => {
+  if (!dlgTask) return;
+  if (!confirm(`「${dlgTask.slot} ${dlgTask.label}」の記録を取り消しますか？`)) return;
+  $('dialog').hidden = true;
+  try {
+    const res = await api(null, { action: 'undo', taskId: dlgTask.id });
+    if (res.tasks) { state = res; wasAllDone = state.tasks.every(t => t.done); renderToday(); toast('取り消しました'); }
+  } catch (e) { toast('通信できません'); }
+};
+$('list').addEventListener('click', e => {
+  const b = e.target.closest('.task'); if (b) onTaskTap(b.dataset.id);
+});
+
+/* ---- 履歴 ---- */
+async function loadHistory() {
+  const box = $('view-history');
+  box.innerHTML = '<div class="empty">読み込み中…</div>';
+  try {
+    const res = await api({ action: 'history', days: 14 });
+    if (res.error === 'auth') return showLogin('合言葉が違います');
+    if (!res.ok) throw new Error(res.error);
+    box.innerHTML = res.days.map(d => {
+      const n = res.tasks.filter(t => d.entries[t.id]).length;
+      const rows = res.tasks.map(t => {
+        const e = d.entries[t.id];
+        return `<div class="row"><div class="n"><em>${esc(t.slot)}</em>${esc(t.label)}</div>` +
+          (e ? `${byBadge(e.who)}<span>${esc(e.time)}</span>` : `<span class="miss">—</span>`) + `</div>`;
+      }).join('');
+      return `<div class="day"><h3>${fmtDate(d.date).short}<span class="${n === res.tasks.length ? 'full' : ''}">${n}/${res.tasks.length}</span></h3>${rows}</div>`;
+    }).join('');
+  } catch (e) { box.innerHTML = '<div class="empty">履歴を読み込めませんでした</div>'; }
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  $('view-today').hidden = tab !== 'today';
+  $('view-history').hidden = tab !== 'history';
+  $('tabToday').classList.toggle('active', tab === 'today');
+  $('tabHistory').classList.toggle('active', tab === 'history');
+  if (tab === 'history') loadHistory(); else refresh(true);
+  window.scrollTo(0, 0);
+}
+$('tabToday').onclick = () => setTab('today');
+$('tabHistory').onclick = () => setTab('history');
+
+/* ---- ログイン ---- */
+function updateWhoBadge() {
+  $('whoLabel').textContent = who || '未選択';
+  $('whoBtn').dataset.who = who;
+}
+function showLogin(msg) {
+  $('passInput').value = pass;
+  $('loginErr').textContent = msg || '';
+  document.querySelectorAll('#whoPick button').forEach(b => b.classList.toggle('sel', b.dataset.who === who));
+  $('login').hidden = false;
+}
+$('whoPick').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  who = b.dataset.who;
+  document.querySelectorAll('#whoPick button').forEach(x => x.classList.toggle('sel', x === b));
+});
+$('loginBtn').onclick = async () => {
+  const p = $('passInput').value.trim();
+  if (!p) return ($('loginErr').textContent = '合言葉を入力してください');
+  if (!who) return ($('loginErr').textContent = '夫・妻のどちらかを選んでください');
+  pass = p;
+  $('loginBtn').textContent = '確認中…';
+  try {
+    const res = await api({ action: 'state' });
+    if (res.error === 'auth') { $('loginErr').textContent = '合言葉が違います'; return; }
+    if (!res.ok) throw new Error(res.error);
+    localStorage.setItem(LS.pass, pass); localStorage.setItem(LS.who, who);
+    $('login').hidden = true; updateWhoBadge();
+    state = res; wasAllDone = null; renderToday();
+  } catch (e) { $('loginErr').textContent = '接続できません（API_URLを確認してください）'; }
+  finally { $('loginBtn').textContent = 'はじめる'; }
+};
+$('whoBtn').onclick = () => showLogin('');
+
+/* ---- 起動 ---- */
+updateWhoBadge();
+if (!pass || !who) showLogin(''); else refresh(false);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible' && pass && currentTab === 'today') refresh(true);
+});
+setInterval(() => { if (document.visibilityState === 'visible' && pass && currentTab === 'today') refresh(true); }, 20000);
+
+if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+</script>
+</body>
+</html>
